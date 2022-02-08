@@ -123,6 +123,17 @@ def _impl(ctx):
         is_executable = True,
     )
 
+    if ctx.attr.push_now:
+        out_file = ctx.actions.declare_file("%s.log" % ctx.attr.name)
+        ctx.actions.run_shell(
+            inputs = [
+                exe,
+            ],
+            outputs = [out_file],
+            command = "%s; echo $? > '%s'" % (exe.path, out_file.path),
+            mnemonic = "DockerPush",
+        )
+
     return [
         DefaultInfo(
             executable = exe,
@@ -190,6 +201,9 @@ container_push_ = rule(
         ),
         "windows_paths": attr.bool(
             mandatory = True,
+        ),
+        "push_now": attr.bool(
+            default = False,
         ),
         "_digester": attr.label(
             default = "//container/go/cmd/digester",
